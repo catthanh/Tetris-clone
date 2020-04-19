@@ -94,17 +94,40 @@ void Game::handle_inputs()
 	input_.down = key_states[SDL_SCANCODE_DOWN];
 	input_.space = key_states[SDL_SCANCODE_SPACE];
 	
-
-	if (prev_input.left == 0 && input_.left)
-	{
-		input_.pressTime = SDL_GetTicks();
-	}
-
 	input_.dleft = input_.left - prev_input.left;
 	input_.dright = input_.right - prev_input.right;
 	input_.dup = input_.up - prev_input.up;
 	input_.ddown = input_.down - prev_input.down;
 	input_.dspace = input_.space - prev_input.space;
+	//delay when holding key
+	if (prev_input.left <= 0 && input_.left > 0)
+	{
+		input_.pressTime = SDL_GetTicks();
+	}
+	if (input_.left > 0 && prev_input.left > 0)
+	{
+		if (SDL_GetTicks() > input_.pressTime + 500)
+			input_.dleft = input_.left;
+	}
+	if (prev_input.right <= 0 && input_.right > 0)
+	{
+		input_.pressTime = SDL_GetTicks();
+	}
+	if (input_.right > 0 && prev_input.right > 0)
+	{
+		if (SDL_GetTicks() > input_.pressTime + 500)
+			input_.dright = input_.right;
+	}
+	if (prev_input.down <= 0 && input_.down > 0)
+	{
+		input_.pressTime = SDL_GetTicks();
+	}
+	if (input_.down > 0 && prev_input.down > 0)
+	{
+		if (SDL_GetTicks() > input_.pressTime + 500)
+			input_.ddown = input_.down;
+	}
+	
 	
 	
 }
