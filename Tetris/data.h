@@ -16,10 +16,11 @@ inline extern const s32 WINDOW_PIXEL_HEIGHT{ CELL_PIXCEL_SIZE * VISIBLE_MATRIX_H
 inline extern const s32 WINDOW_PIXEL_WIDTH{ CELL_PIXCEL_SIZE * VISIBLE_MATRIX_WIDTH*2 };
 inline extern const s32 tetroI[]
 {
-	  0, 0, 0, 0,
-	  0, 0, 0, 0,
-	  1, 1, 1, 1,
-	  0, 0, 0, 0,
+	  0, 0, 0, 0, 0,
+	  0, 0, 0, 0, 0,
+	  1, 1, 1, 1, 0,
+	  0, 0, 0, 0, 0,
+	  0, 0, 0, 0, 0
 };
 
 inline extern const s32 tetroT[]

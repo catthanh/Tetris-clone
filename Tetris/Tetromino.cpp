@@ -7,7 +7,7 @@
 
 
 Tetromino::Tetromino() :
-	type_{ static_cast<Type>( 1) },
+	type_{ static_cast<Type>(1) },
 	offset_col_{ 3 },
 	offset_row_{ -1 },
 	orientation_{ 0 }
@@ -21,7 +21,7 @@ s32 Tetromino::size() const
 	{
 	case Type::I:
 	{
-		return 4;
+		return 5;
 	}
 	case Type::T:
 	{
