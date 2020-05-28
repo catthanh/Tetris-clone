@@ -1,4 +1,3 @@
-#pragma once
 
 #pragma once
 #include <cstdint>
@@ -72,6 +71,7 @@ public:
 	u8 right;
 	u8 up;
 	u8 down;
+	u8 p;
 
 	u8 space;
 	u32 pressTime;
@@ -81,4 +81,67 @@ public:
 	s8 dup;
 	s8 ddown;
 	s8 dspace;
+	s8 dp;
+};
+
+s32 inline extern const offset_data[]
+{
+	0,0,
+	0,0,
+	0,0,
+	0,0,
+	0,0,
+
+	0,0,
+	1,0,
+	1,-1,
+	0,2,
+	1,2,
+
+	0,0,
+	0,0,
+	0,0,
+	0,0,
+	0,0,
+
+	0,0,
+	-1,0,
+	-1,-1,
+	0,2,
+	-1,2,
+};
+
+inline extern const s32 offset_data_i[]
+{
+	0,0,
+	-1,0,
+	2,0,
+	-1,0,
+	2,0,
+
+	-1,0,
+	0,0,
+	0,0,
+	0,1,
+	0,-2,
+
+	-1,1,
+	1,1,
+	-2,1,
+	1,0,
+	-2,0,
+
+	0,1,
+	0,1,
+	0,1,
+	0,-1,
+	0,2,
+};
+
+inline extern const s32 offset_data_o[]
+{
+	0,0,
+	0,-1,
+	-1,-1,
+	-1,0
 };

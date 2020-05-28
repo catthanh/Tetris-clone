@@ -69,25 +69,7 @@ void Tetromino::rotate(s32 i)
 		if (i < 0)
 			(orientation_ += 3) %= 4;
 		else return;
-	/*if (type_ == Type::I)
-	{
-		switch (orientation_)
-		{
-		case 1:
-		{
-			move(0, 1);
-			break;
-		}
-		case 2:
-		{
-			move(0, 1);
-			break;
-		}
 
-		default:
-			break;
-		}
-	}*/
 }
 
 void Tetromino::set_type(Type type)

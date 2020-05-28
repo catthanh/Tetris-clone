@@ -93,13 +93,17 @@ void Game::handle_inputs()
 	input_.up = key_states[SDL_SCANCODE_UP];
 	input_.down = key_states[SDL_SCANCODE_DOWN];
 	input_.space = key_states[SDL_SCANCODE_SPACE];
+	input_.p = key_states[SDL_SCANCODE_P];
 	
+
 	input_.dleft = input_.left - prev_input.left;
 	input_.dright = input_.right - prev_input.right;
 	input_.dup = input_.up - prev_input.up;
 	input_.ddown = input_.down - prev_input.down;
 	input_.dspace = input_.space - prev_input.space;
-	//delay when holding key
+	input_.dp = input_.p - prev_input.p;
+	//delay processing when holding key
+	//delaytime = 500ms
 	if (prev_input.left <= 0 && input_.left > 0)
 	{
 		input_.pressTime = SDL_GetTicks();
@@ -133,11 +137,7 @@ void Game::handle_inputs()
 }
 
 void Game::update()
-{
-	
-	
-	
-	
+{	
 	switch (phase_)
 	{
 	case Game::Game_phase::GAME_PHASE_START:
@@ -155,32 +155,26 @@ void Game::update()
 	case Game::Game_phase::GAME_PHASE_PLAY:
 	{
 		level_ = lines_ / 10+1;
+		if (input_.dp > 0)
+		{
+			change_game_phase(Game::Game_phase::GAME_PHASE_PAUSE);
+		}
 		if (input_.dleft>0)
 		{
-			Tetromino tt = t_;
-			tt.move(-1, 0);
-			if (checkTetrominoValid(tt))
-			{
-				t_ = tt;
-			}
+
+			moveTetromino(t_, -1, 0);
 		}
 		if (input_.dright > 0)
 		{
-			Tetromino tt = t_;
-			tt.move(1, 0);
-			if (checkTetrominoValid(tt))
-			{
-				t_ = tt;
-			}
+			moveTetromino(t_, 1, 0);
 		}
 		if (input_.dup > 0)
 		{
-			Tetromino tt = t_;
-			tt.rotate(1);
-			if (checkTetrominoValid(tt))
+			if ( t_.type() != Type::O)
 			{
-				t_ = tt;
+				rotateTetromino(t_,1);
 			}
+			
 		}
 		if (input_.ddown > 0)
 		{
@@ -189,7 +183,7 @@ void Game::update()
 			if (checkTetrominoValid(tt))
 			{
 				t_ = tt;
-				next_drop_time_ = time_ + getTimeToNextDrop(1);
+				next_drop_time_ = time_ + getTimeToNextDrop(level_);
 			}
 		}
 		if (input_.dspace > 0)
@@ -237,7 +231,7 @@ void Game::update()
 	}
 	case Game::Game_phase::GAME_PHASE_PAUSE:
 	{
-		if (input_.dspace > 0)
+		if (input_.dp > 0)
 			change_game_phase(Game::Game_phase::GAME_PHASE_PLAY);
 		break;
 	}
@@ -264,7 +258,7 @@ void Game::render()
 	std::stringstream slevel;
 	slevel << level_;
 	
-	//drawString("123123131323", 30 * 10 + 10,  10);
+	
 
 	switch (phase_)
 	{
@@ -283,7 +277,7 @@ void Game::render()
 		drawString(slines.str(), 11, 1);
 		drawString("scores: ", 12, 2);
 		drawString(sscores.str(), 11, 3);
-		drawString("level: ", 12, 4);
+		drawString("level : ", 12, 4);
 		drawString(slevel.str(), 11, 5);
 		drawString("Next Pieces", 12, 6);
 		//draw next tetromino
@@ -300,6 +294,8 @@ void Game::render()
 	{
 		drawString("Press p ", 10, 4);
 		drawString(" to continue", 10, 5);
+		drawTetromino(t_, false);
+		drawTetromino(g_, true);
 		break;
 	}
 	case Game::Game_phase::GAME_PHASE_OVER:
@@ -441,12 +437,60 @@ u32 Game::getRandomInt()
 	return rand() % 7 + 1;
 }
 
-void Game::moveTetromino()
+bool Game::moveTetromino(Tetromino &t, s32 col, s32 row)
 {
+	Tetromino tt = t;
+	tt.move(col, row);
+	if (checkTetrominoValid(tt))
+	{
+		t = tt;
+		return true;
+	}
+	return false;
 }
 
-void Game::rotateTetromino()
+bool Game::rotateTetromino(Tetromino &t, s32 i)
 {
+	for (s32 test{}; test < 5; test++)
+	{
+		Tetromino tt = t;
+		s32 new_col{};
+		s32 new_row{};
+		switch (t.type())
+		{
+		case Type::I:
+		{
+			new_col = -offset_data_i[tt.orientation() * 10 + test * 2] + offset_data_i[((tt.orientation() + 1) % 4) * 10 + test * 2];
+			new_row = -offset_data_i[tt.orientation() * 10 + test * 2 + 1] + offset_data_i[((tt.orientation() + 1) % 4) * 10 + test * 2 + 1];
+			break;
+		}
+		case Type::O:
+		{
+			break;
+		}
+		default:
+		{
+			new_col = -offset_data[tt.orientation() * 10 + test*2] + offset_data[((tt.orientation() + 1) % 4) * 10 + test*2];
+			new_row = -offset_data[tt.orientation() * 10 + test * 2+1] + offset_data[((tt.orientation() + 1) % 4) * 10 + test * 2+1];
+			std::cout << new_col << ","
+			<< new_row << std::endl;
+			break;
+		}
+		
+		};
+		tt.rotate(i);
+		std::cout << tt.offset_col() << " , " << tt.offset_row() << std::endl;
+		tt.move(new_col, new_row);
+		std::cout << tt.offset_col() << " , " << tt.offset_row() << std::endl;
+		if (checkTetrominoValid(tt))
+		{
+			t = tt;
+			return true;
+		}
+
+		
+	}
+	return false;
 }
 
 u32 Game::getTimeToNextDrop(s32 level)
@@ -511,12 +555,9 @@ bool Game::checkRowEmpty(s32 row)
 {
 	for (s32 i{ 9 }; i >= 0; i--)
 	{
-
 		if (matrixGet(i, row) != 0)
 			return false;
 	}
-
-
 	return true;
 }
 
@@ -541,14 +582,12 @@ void Game::matrixDrop()
 		if (checkRowEmpty(row))
 			for (s32 a{}; a < 6; a++)
 			{
-				if (checkRowEmpty(row - a)) {
+				if (!checkRowEmpty(row - a)) {
 
-					continue;
-				}
-				else {
 					swapRow(row, row - a);
 					break;
 				}
+				
 			}
 	};
 }

@@ -46,8 +46,8 @@ public:
 	Tetromino spawnTetromino(Type type);
 
 	u32 getRandomInt();
-	void moveTetromino();
-	void rotateTetromino();
+	bool moveTetromino(Tetromino &t, s32 col, s32 row);
+	bool rotateTetromino(Tetromino &t, s32 i);
 	u32 getTimeToNextDrop(s32 level);
 	bool checkRowFilled(s32 row);
 	void clearFilledRow();
