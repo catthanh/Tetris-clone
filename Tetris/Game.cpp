@@ -61,6 +61,11 @@ Game::~Game()
 
 void Game::change_game_phase(Game_phase phase)
 {
+	if (phase == Game_phase::GAME_PHASE_LINE)
+	{
+		time_ = SDL_GetTicks();
+		line_clear_time_ = time_ + 150;
+	}
 	phase_ = phase;
 }
 
@@ -103,14 +108,14 @@ void Game::handle_inputs()
 	input_.dspace = input_.space - prev_input.space;
 	input_.dp = input_.p - prev_input.p;
 	//delay processing when holding key
-	//delaytime = 500ms
+	u32 delaytime = 300;
 	if (prev_input.left <= 0 && input_.left > 0)
 	{
 		input_.pressTime = SDL_GetTicks();
 	}
 	if (input_.left > 0 && prev_input.left > 0)
 	{
-		if (SDL_GetTicks() > input_.pressTime + 500)
+		if (SDL_GetTicks() > input_.pressTime + delaytime)
 			input_.dleft = input_.left;
 	}
 	if (prev_input.right <= 0 && input_.right > 0)
@@ -119,7 +124,7 @@ void Game::handle_inputs()
 	}
 	if (input_.right > 0 && prev_input.right > 0)
 	{
-		if (SDL_GetTicks() > input_.pressTime + 500)
+		if (SDL_GetTicks() > input_.pressTime + delaytime)
 			input_.dright = input_.right;
 	}
 	if (prev_input.down <= 0 && input_.down > 0)
@@ -128,7 +133,7 @@ void Game::handle_inputs()
 	}
 	if (input_.down > 0 && prev_input.down > 0)
 	{
-		if (SDL_GetTicks() > input_.pressTime + 500)
+		if (SDL_GetTicks() > input_.pressTime + delaytime)
 			input_.ddown = input_.down;
 	}
 	
@@ -149,7 +154,11 @@ void Game::update()
 		t_ = spawnTetromino(next_);
 		next_ = static_cast<Type>(getRandomInt());
 		if (input_.dspace > 0)
+		{
+			time_ = SDL_GetTicks();
+			next_drop_time_ = time_ + getTimeToNextDrop(level_);
 			change_game_phase(Game::Game_phase::GAME_PHASE_PLAY);
+		}
 		break;
 	}
 	case Game::Game_phase::GAME_PHASE_PLAY:
@@ -161,7 +170,6 @@ void Game::update()
 		}
 		if (input_.dleft>0)
 		{
-
 			moveTetromino(t_, -1, 0);
 		}
 		if (input_.dright > 0)
@@ -173,66 +181,81 @@ void Game::update()
 			if ( t_.type() != Type::O)
 			{
 				rotateTetromino(t_,1);
-			}
-			
+			}			
 		}
 		if (input_.ddown > 0)
 		{
-			Tetromino tt = t_;
-			tt.move(0, 1);
-			if (checkTetrominoValid(tt))
+			if (moveTetromino(t_,0,1))
 			{
-				t_ = tt;
 				next_drop_time_ = time_ + getTimeToNextDrop(level_);
 			}
 		}
 		if (input_.dspace > 0)
 		{
-			while (checkTetrominoValid(t_))
+			while (moveTetromino(t_,0,1))
 			{
-				t_.move(0, 1);
 			}
-			t_.move(0, -1);
 			lockTetromino(t_);
-			clearFilledRow();
-			matrixDrop();
 			t_ = spawnTetromino(next_);
-		}
+			time_ = SDL_GetTicks();
+			next_drop_time_ = time_ + getTimeToNextDrop(level_);
+		} 
 		if (!checkRowEmpty(-2))
 		{
 			change_game_phase(Game_phase::GAME_PHASE_OVER);
 		}
 		//ghost pieces
 		g_ = t_;
-		while (checkTetrominoValid(g_))
+		while (moveTetromino(g_,0,1))
 		{
-			g_.move(0, 1);
 		}
-		g_.move(0, -1);
+		
 		//auto-drop
 		time_ = SDL_GetTicks();
 		if (time_ > next_drop_time_)
 		{
-			if (checkTetrominoValid(t_))
-				t_.move(0, 1);
+			if (moveTetromino(t_, 0, 1))
+				next_drop_time_ = time_ + getTimeToNextDrop(level_);
+			else
+			{
 
-			next_drop_time_ = time_ + getTimeToNextDrop(level_);
+				lockTetromino(t_);
+
+		
+				time_ = SDL_GetTicks();
+				next_drop_time_ = time_ + getTimeToNextDrop(level_);
+				t_ = spawnTetromino(next_);
+			}
 		}
-		if (!checkTetrominoValid(t_))
+		for (s32 row{}; row < 20; row++)
 		{
-			t_.move(0, -1);
-			lockTetromino(t_);
-			clearFilledRow();
-			matrixDrop();
-			t_ = spawnTetromino(next_);
-		}
+			if (checkRowFilled(row))
+			{
 
+				change_game_phase(Game::Game_phase::GAME_PHASE_LINE);
+
+			};
+		}
+		//clearFilledRow();
+		//matrixDrop();
 		break; 
 	}
 	case Game::Game_phase::GAME_PHASE_PAUSE:
 	{
 		if (input_.dp > 0)
 			change_game_phase(Game::Game_phase::GAME_PHASE_PLAY);
+		break;
+	}
+	case Game::Game_phase::GAME_PHASE_LINE:
+	{
+		
+		time_ = SDL_GetTicks();
+		if (time_ > line_clear_time_)
+		{
+			clearFilledRow();
+			matrixDrop();
+			change_game_phase(Game::Game_phase::GAME_PHASE_PLAY);
+		}
 		break;
 	}
 	case Game::Game_phase::GAME_PHASE_OVER:
@@ -257,8 +280,6 @@ void Game::render()
 	sscores << scores_;
 	std::stringstream slevel;
 	slevel << level_;
-	
-	
 
 	switch (phase_)
 	{
@@ -298,7 +319,33 @@ void Game::render()
 		drawTetromino(g_, true);
 		break;
 	}
+	case Game::Game_phase::GAME_PHASE_LINE:
+	{
+		drawTetromino(t_, false);
+		drawTetromino(g_, true);
+
+
+		drawString("lines: ", 12, 0);
+		drawString(slines.str(), 11, 1);
+		drawString("scores: ", 12, 2);
+		drawString(sscores.str(), 11, 3);
+		drawString("level : ", 12, 4);
+		drawString(slevel.str(), 11, 5);
+		drawString("Next Pieces", 12, 6);
+		//draw next tetromino
+		Tetromino next{};
+		next.set_type(next_);
+		if (next.type() == Type::O)
+			next.move(1, 1);
+		next.move(9, 7);
+		drawTetromino(next, false);
+
+		//draw white line
+		drawClearedLine();
+		break;
+	}
 	case Game::Game_phase::GAME_PHASE_OVER:
+	{
 		drawString("lines: ", 12, 0);
 		drawString(slines.str(), 11, 1);
 		drawString("scores: ", 12, 2);
@@ -308,10 +355,10 @@ void Game::render()
 		//drawString("Next Pieces", 10, 6);
 		drawString("Game over", 10, 7);
 		break;
+	}
 	default:
 		break;
 	}
-
 
 	//phase render
 
@@ -422,10 +469,10 @@ Tetromino Game::spawnTetromino(Type type)
 	Tetromino a{};
 	a.set_type(type);
 	next_ = static_cast<Type>(getRandomInt());
-	if (a.type() == Type::T)
-		a.move(0, 0);
 	if (a.type() == Type::O)
 		a.move(1 , 1);
+	if (a.type() == Type::I)
+		a.move(-1, 0);
 	while (!checkTetrominoValid(a))
 		a.move(0, -1);
 	return a;
@@ -433,7 +480,7 @@ Tetromino Game::spawnTetromino(Type type)
 
 u32 Game::getRandomInt()
 {
-	srand(SDL_GetTicks());
+	//srand(SDL_GetTicks());
 	return rand() % 7 + 1;
 }
 
@@ -460,8 +507,10 @@ bool Game::rotateTetromino(Tetromino &t, s32 i)
 		{
 		case Type::I:
 		{
-			new_col = -offset_data_i[tt.orientation() * 10 + test * 2] + offset_data_i[((tt.orientation() + 1) % 4) * 10 + test * 2];
-			new_row = -offset_data_i[tt.orientation() * 10 + test * 2 + 1] + offset_data_i[((tt.orientation() + 1) % 4) * 10 + test * 2 + 1];
+			new_col = offset_data_i[tt.orientation() * 10 + test * 2] - offset_data_i[((tt.orientation() + 1) % 4) * 10 + test * 2];
+			new_row = offset_data_i[tt.orientation() * 10 + test * 2 + 1] - offset_data_i[((tt.orientation() + 1) % 4) * 10 + test * 2 + 1];
+			std::cout << new_col << ","
+				<< new_row << std::endl;
 			break;
 		}
 		case Type::O:
@@ -499,6 +548,11 @@ u32 Game::getTimeToNextDrop(s32 level)
 	return 1000  / level;
 }
 
+void Game::softDrop()
+{
+
+}
+
 bool Game::checkRowFilled(s32 row)
 {
 	for (s32 i{ 9 }; i >= 0; i--)
@@ -511,7 +565,7 @@ bool Game::checkRowFilled(s32 row)
 	return true;
 }
 
-void Game::clearFilledRow()
+bool Game::clearFilledRow()
 {
 	s32 rowFilledInOneTime = 0;
 	for (s32 row{}; row < 20; row++)
@@ -549,6 +603,9 @@ void Game::clearFilledRow()
 	default:
 		break;
 	}
+	if (rowFilledInOneTime)
+		return true;
+	return false;
 }
 
 bool Game::checkRowEmpty(s32 row)
@@ -578,12 +635,10 @@ void Game::matrixDrop()
 {
 	for (s32 row{ 19 }; row >= 0; row--)
 	{
-
 		if (checkRowEmpty(row))
 			for (s32 a{}; a < 6; a++)
 			{
 				if (!checkRowEmpty(row - a)) {
-
 					swapRow(row, row - a);
 					break;
 				}
@@ -674,6 +729,25 @@ void Game::drawMatrix()
 			}
 }
 
+void Game::drawClearedLine()
+{
+	SDL_SetRenderDrawColor(renderer_,255, 255, 255, 255);
+	for (s32 row{}; row < 20; row++)
+	{
+		if (checkRowFilled(row))
+		{
+			SDL_Rect line
+			{
+			0 ,
+			row * CELL_PIXCEL_SIZE,
+			10 * CELL_PIXCEL_SIZE,
+			CELL_PIXCEL_SIZE,
+			};
+			SDL_RenderFillRect(renderer_, &line);
+		}
+	}
+}
+
 void Game::drawTetromino(Tetromino t, bool outline)
 {
 	for (s32 y{}; y < t.size(); y++) {
@@ -699,12 +773,10 @@ void Game::drawString(std::string s, s32 col, s32 row)
 	Message_rect.w = surfaceMessage->w; 
 	Message_rect.h = surfaceMessage->h; 
 
-	
-
 	SDL_RenderCopy(renderer_, Message, NULL, &Message_rect); 
 	SDL_FreeSurface(surfaceMessage);
 	SDL_DestroyTexture(Message);
-	/*surfaceMessage = nullptr;
-	Message = nullptr;*/
+	surfaceMessage = nullptr;
+	Message = nullptr;
 	
 }

@@ -20,6 +20,7 @@ public:
 		GAME_PHASE_PLAY,
 		GAME_PHASE_PAUSE,
 		GAME_PHASE_OVER,
+		GAME_PHASE_LINE, //effect when clearing filled row
 
 	};
 	void change_game_phase(Game_phase phase);
@@ -49,13 +50,17 @@ public:
 	bool moveTetromino(Tetromino &t, s32 col, s32 row);
 	bool rotateTetromino(Tetromino &t, s32 i);
 	u32 getTimeToNextDrop(s32 level);
+	void softDrop();
+
 	bool checkRowFilled(s32 row);
-	void clearFilledRow();
+	bool clearFilledRow();
 	bool checkRowEmpty(s32 row);
 	void swapRow(s32 row1, s32 row2);
 	void matrixDrop();
+
 	void drawCell(s32 col, s32 row, s32 value, bool outline);
 	void drawMatrix();
+	void drawClearedLine();
 	void drawTetromino(Tetromino t, bool outline);
 	void drawString(std::string s, s32 col, s32 row);
 private:
@@ -65,7 +70,8 @@ private:
 	bool running_;
 	bool pausing_;
 	u32 time_;
-	u32 next_drop_time_{ 300 };
+	u32 next_drop_time_{ 400 };
+	u32 line_clear_time_{ 100 };
 	s32 lines_{ 0 };
 	s32 scores_{ 0 };
 	s32 level_{ 1 };

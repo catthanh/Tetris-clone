@@ -16,7 +16,6 @@ public:
 	Type type() const { return type_; };
 	s32 size() const;
 	s32 tetromino_get(s32 col, s32 row);
-
 	void move(s32 col, s32 row);
 	void rotate(s32 i);
 	void set_type(Type type);

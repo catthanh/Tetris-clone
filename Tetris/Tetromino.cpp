@@ -7,12 +7,11 @@
 
 
 Tetromino::Tetromino() :
-	type_{ static_cast<Type>(1) },
+	type_{ static_cast<Type>(rand() % 7 + 1) },
 	offset_col_{ 3 },
 	offset_row_{ -1 },
 	orientation_{ 0 }
 {
-
 }
 
 s32 Tetromino::size() const
@@ -23,26 +22,14 @@ s32 Tetromino::size() const
 	{
 		return 5;
 	}
-	case Type::T:
-	{
-		return 3;
-	}
 	case Type::O:
 	{
 		return 2;
 	}
+	case Type::T:
 	case Type::J:
-	{
-		return 3;
-	}
 	case Type::L:
-	{
-		return 3;
-	}
 	case Type::S:
-	{
-		return 3;
-	}
 	case Type::Z:
 	{
 		return 3;
@@ -57,8 +44,6 @@ void Tetromino::move(s32 col, s32 row)
 {
 	offset_col_ += col;
 	offset_row_ += row;
-
-
 }
 
 void Tetromino::rotate(s32 i)
@@ -69,7 +54,6 @@ void Tetromino::rotate(s32 i)
 		if (i < 0)
 			(orientation_ += 3) %= 4;
 		else return;
-
 }
 
 void Tetromino::set_type(Type type)

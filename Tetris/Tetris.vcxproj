@@ -85,8 +85,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>C:\Dev\Lib\VC\SDL2_image-2.0.5\include;C:\Dev\Lib\VC\SDL2_mixer-2.0.4\include;C:\Dev\Lib\VC\SDL2_ttf-2.0.15\include;C:\Dev\Lib\VC\SDL2-2.0.12\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Dev\Lib\VC\SDL2-2.0.12\lib\x64;C:\Dev\Lib\VC\SDL2_ttf-2.0.15\lib\x64;C:\Dev\Lib\VC\SDL2_mixer-2.0.4\lib\x64;C:\Dev\Lib\VC\SDL2_image-2.0.5\lib\x64;$(LibraryPath)</LibraryPath>
+    <IncludePath>D:\Dev.old\Lib\VC\SDL2_image-2.0.5\include;D:\Dev.old\Lib\VC\SDL2_mixer-2.0.4\include;D:\Dev.old\Lib\VC\SDL2_ttf-2.0.15\include;D:\Dev.old\Lib\VC\SDL2-2.0.12\include;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\Dev.old\Lib\VC\SDL2-2.0.12\lib\x64;D:\Dev.old\Lib\VC\SDL2_ttf-2.0.15\lib\x64;D:\Dev.old\Lib\VC\SDL2_mixer-2.0.4\lib\x64;D:\Dev.old\Lib\VC\SDL2_image-2.0.5\lib\x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
